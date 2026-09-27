@@ -1,0 +1,37 @@
+# --- Core API framework ---
+fastapi==0.111.0
+uvicorn[standard]==0.30.1
+gunicorn==22.0.0  # production process manager; entrypoint.sh picks this vs. plain uvicorn
+python-multipart==0.0.9
+
+# --- Scheduled jobs (Module 9) ---
+apscheduler==3.10.4
+
+# --- Settings / validation ---
+pydantic==2.7.4
+pydantic-settings==2.3.4
+email-validator==2.2.0
+
+# --- Database / GIS ---
+sqlalchemy==2.0.31
+geoalchemy2==0.15.1
+psycopg2-binary==2.9.9
+alembic==1.13.2
+shapely==2.0.4
+
+# --- Auth / security ---
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+bcrypt==4.0.1
+
+# --- Utilities ---
+python-dotenv==1.0.1
+httpx==0.27.0  # geocoding_service's HTTP client; also used as the test client
+
+# --- Testing (dev only) ---
+pytest==8.2.2
+
+# NOTE: NLP (spaCy, transformers, sentence-transformers), Computer Vision
+# (ultralytics/YOLOv8) and ML (xgboost, scikit-learn) dependencies will be
+# added to requirements-ai.txt in the NLP / Computer Vision / ML modules,
+# since they are heavy (multi-GB) and best isolated in their own service.

@@ -1,0 +1,19 @@
+# Computer Vision dependencies for Module 5 (ai_models/computer_vision).
+# Isolated from requirements.txt/requirements-ai.txt so each heavy
+# dependency group only rebuilds when it actually changes.
+
+# Pin torch/torchvision here. `ultralytics` depends on torchvision with no
+# upper bound, so an unpinned install pulls the latest torchvision, which
+# upgrades torch to 2.6+ and breaks YOLO checkpoint loading
+# (torch.load defaults to weights_only=True).
+torch==2.3.1
+torchvision==0.18.1
+ultralytics==8.2.58
+opencv-python-headless==4.10.0.84
+pillow==10.4.0
+numpy==1.26.4
+
+# ultralytics downloads the yolov8n.pt checkpoint automatically on first
+# use if it isn't already present. backend/Dockerfile pre-downloads it at
+# build time so the first request doesn't pay that cost (and so the
+# container doesn't need network access at runtime).

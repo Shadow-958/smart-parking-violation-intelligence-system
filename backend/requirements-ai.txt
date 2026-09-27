@@ -1,0 +1,19 @@
+# NLP dependencies for Module 4 (ai_models/nlp). Isolated from
+# requirements.txt so the base API image stays lean in modules that don't
+# need them, and so this layer only rebuilds when these specific
+# dependencies change.
+#
+# Computer Vision (YOLOv8/ultralytics) and ML prediction (xgboost/
+# scikit-learn) dependencies get their own similar files in those modules,
+# rather than piling everything into one requirements-ai.txt.
+
+spacy==3.7.5
+nltk==3.8.1
+transformers==4.42.3
+sentence-transformers==3.0.1
+torch==2.3.1
+
+# After `pip install -r requirements-ai.txt`, also fetch model/data files
+# (both already run automatically in backend/Dockerfile):
+#   python -m spacy download en_core_web_sm
+#   python -c "import nltk; nltk.download('stopwords'); nltk.download('punkt'); nltk.download('wordnet')"

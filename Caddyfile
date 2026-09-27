@@ -1,0 +1,29 @@
+# Caddy handles TLS termination and reverse-proxying for the production
+# stack — chosen over hand-rolled nginx+certbot specifically because it
+# gets automatic Let's Encrypt HTTPS from ~10 lines of config, which is a
+# meaningfully smaller thing to get wrong in a deployment guide.
+#
+# Replace the domain below with your real one — Caddy will not issue a
+# certificate for a placeholder/unreachable domain, and the stack will
+# fall back to serving plain HTTP on that hostname instead of failing
+# outright (Caddy's default behavior when ACME issuance fails).
+
+parking.example.com {
+    # API and its docs
+    handle /api/* {
+        reverse_proxy backend:8000
+    }
+    handle /docs* {
+        reverse_proxy backend:8000
+    }
+    handle /openapi.json {
+        reverse_proxy backend:8000
+    }
+
+    # Everything else is the React app
+    handle {
+        reverse_proxy frontend:80
+    }
+
+    encode gzip
+}

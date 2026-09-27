@@ -1,0 +1,12 @@
+# Machine Learning dependencies for Module 7 (ai_models/ml_prediction).
+# Isolated from the other requirements-*.txt files the same way — each
+# heavy dependency group only rebuilds when it actually changes.
+#
+# No pretrained weights to download here (unlike spaCy/NLTK/YOLOv8) —
+# these are trained from this project's own data via
+# POST /api/predictions/train, not shipped pretrained.
+
+xgboost==2.1.0
+scikit-learn==1.5.1
+pandas==2.2.2
+joblib==1.4.2

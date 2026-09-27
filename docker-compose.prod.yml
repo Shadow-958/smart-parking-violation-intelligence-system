@@ -1,0 +1,108 @@
+# Production stack. A standalone file rather than a docker-compose.yml
+# override — Compose's merge rules for list fields (ports, volumes) have
+# changed across versions and aren't worth relying on for something as
+# consequential as "which ports are exposed to the internet in
+# production." Run with:
+#
+#   docker compose -f docker-compose.prod.yml up -d --build
+#
+# Required before first run: copy .env.example to .env.prod, fill in
+# real secrets (see docs/deployment_guide.md's secrets-management
+# section — do not just use a plaintext .env in real production), and
+# point Caddyfile at your real domain.
+
+version: "3.9"
+
+services:
+  db:
+    image: postgis/postgis:16-3.4
+    container_name: parking_db
+    restart: unless-stopped
+    env_file:
+      - .env.prod
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-parking_user}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    # No host port mapping — only reachable from other containers on this
+    # compose network, not from outside the host.
+
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: parking_backend
+    restart: unless-stopped
+    env_file:
+      - .env.prod
+    environment:
+      ENVIRONMENT: production
+      DEBUG: "false"
+    volumes:
+      - uploaded_images:/app/uploads
+      - ml_artifacts:/app/ai_models/ml_prediction/artifacts
+      # Deliberately no bind-mount of ./backend or ./ai_models here (unlike
+      # docker-compose.yml) — production runs the code baked into the
+      # image, not live-editable source, so a code change requires a
+      # rebuild rather than taking effect immediately.
+    depends_on:
+      db:
+        condition: service_healthy
+    # No host port mapping — only Caddy talks to this directly.
+
+  scheduler:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: parking_scheduler
+    restart: unless-stopped
+    env_file:
+      - .env.prod
+    environment:
+      ENVIRONMENT: production
+    entrypoint: ["python", "-m", "app.core.scheduler"]
+    volumes:
+      - ml_artifacts:/app/ai_models/ml_prediction/artifacts
+    depends_on:
+      db:
+        condition: service_healthy
+    # Same image as backend, different command — see
+    # app/core/scheduler.py for why this must be its own single-replica
+    # process rather than embedded in the API server.
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.prod
+      args:
+        VITE_API_BASE_URL: ${PUBLIC_API_BASE_URL:-https://parking.example.com}
+    container_name: parking_frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    # No host port mapping — only Caddy talks to this directly.
+
+  caddy:
+    image: caddy:2-alpine
+    container_name: parking_caddy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - backend
+      - frontend
+
+volumes:
+  postgres_data:
+  uploaded_images:
+  ml_artifacts:
+  caddy_data:
+  caddy_config:
