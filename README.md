@@ -370,7 +370,7 @@ open http://localhost:5173
 
 ```bash
 docker compose exec backend alembic upgrade head
-
+'''
 ## Project structure
 
 ```
