@@ -370,43 +370,6 @@ open http://localhost:5173
 
 ```bash
 docker compose exec backend alembic upgrade head
-```
-
-> **Note on this delivery:** most of this was written and syntax-checked
-> in an offline sandbox (no internet access, so no `pip install`/`docker
-> compose up`/model downloads), so it hasn't been run end-to-end against
-> a live Postgres+PostGIS instance yet. Please run it in your own
-> environment as the first step, and flag anything that doesn't come up
-> cleanly. One thing to double check: **the backend's Docker build
-> context changed in Module 4** from `./backend` to the project root, so
-> its Dockerfile can also pull in `ai_models/` — if you had the old
-> compose file cached, `docker compose build backend` to pick this up.
->
-> Seven test files are genuinely dependency-free and were actually
-> executed (not just compiled) in this sandbox, all passing:
-> `tests/test_security.py`, `tests/test_complaint_service.py` (mocked DB),
-> `tests/test_geo_math.py`,
-> `ai_models/tests/test_classifier_and_similarity.py`,
-> `ai_models/tests/test_illegal_parking_heuristic.py`,
-> `ai_models/tests/test_features.py`, and
-> `ai_models/tests/test_enforcement_and_deployment.py`. Everything
-> touching spaCy/NLTK/transformers/sentence-transformers/ultralytics/
-> xgboost/pandas/Postgres/Nominatim still needs your environment to
-> verify. One difference from earlier modules: geocoding needs network
-> access at **runtime** (every request that geocodes a new location), not
-> just at Docker build time — if your deployment has no outbound internet
-> access, geocoding will fail (harmlessly — see the best-effort handling
-> in `nlp_service.py`) until that's addressed.
->
-> **Module 9 specifically:** `docker-compose.prod.yml`, `Caddyfile`,
-> `entrypoint.sh`, and `scheduler.py` are all syntax/logic-reviewed but
-> **not** run end-to-end — I have no Docker daemon in this sandbox, so
-> the production compose stack has never actually been brought up. The
-> most likely things to need a real fix on first try: the Caddy domain
-> placeholder (you must edit this — Caddy can't get a cert for
-> `parking.example.com`), and whatever `GUNICORN_WORKERS` value is
-> actually right for your hardware. Test the production stack in a
-> staging environment before pointing real traffic at it.
 
 ## Project structure
 
